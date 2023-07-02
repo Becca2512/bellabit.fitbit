@@ -1,0 +1,467 @@
+---
+title: "Bellabit-Fitbit Case Study"
+author: "Ana R. Castillo"
+date: "2023-06-18"
+output: html_document
+---
+
+## Case Project Introduction: 
+
+In this analysis, I examined the Fitbit data for Bellabit's product. The goal was to identify trends among Fitbit users and provide recommendations to improve user interaction. The analysis was conducted following the data analysis process, which consists of five steps: Ask, Prepare, Process, Analyze, and Share.
+
+## 1. Ask
+
+In the "Ask" phase, I clarified the objectives and questions to be answered through the analysis. The main questions I aimed to address were:
+
+1. What are some trends among users with Fitbit usage?
+2. How can these trends improve user interaction?
+3. How can these findings help Bellabit as a company?
+
+...................................................................................
+
+## 2. Prepare 
+
+In the "Prepare" phase, I installed and loaded the necessary R packages. The packages used in this analysis were:
+
+```{r loading packages, include=FALSE}
+install.packages("tidyverse")
+install.packages("dplyr")
+install.packages("ggplot2")
+install.packages("janitor")
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(janitor)
+```
+
+Next, I loaded the Fitbit data files into the environment, including:
+
+```{r loading data files to enviroment, include=FALSE}
+
+daily_activity <- read.csv("./Fitabase_Data/dailyActivity_merged.csv")
+
+sleep_day <- read_csv("./Fitabase_Data/sleepDay_merged.csv") 
+ 
+weight_log <- read_csv("./Fitabase_Data/weightLogInfo_merged.csv")
+
+minutes_sleep <- read_csv("./Fitabase_Data/minuteSleep_merged.csv")
+
+daily_steps <- read_csv("./Fitabase_Data/dailySteps_merged.csv")
+```
+...................................................................................
+
+
+## 3. Process 
+
+#### Cleaning daily_activity table
+
+```{r cleaning table 1}
+daily_activity <- daily_activity %>%
+  clean_names() %>%
+  rename(date = activity_date) %>%
+  mutate(date = mdy(date)) %>%
+  mutate(weekday = wday(date, label = TRUE)) 
+
+head(daily_activity)
+```
+
+```{r number of distinct users 1}
+daily_activity %>%  count(id = n_distinct(id))
+
+```
+In this code, I am performing a series of operations on the "daily_activity" dataset. First, I clean the column names and rename the "activity_date" column to "date". Then, I convert the "date" column to a proper date format using the "mdy" function. Finally, I add a new column called "weekday" which represents the weekday corresponding to each date using the "wday" function. After these transformations, I display the first few rows of the modified dataset and calculate the number of distinct users by counting the unique values in the "id" column. This code helps analyze and summarize the daily activity data by standardizing column names, transforming date formats, and providing insights on user counts.
+
+
+
+#### Cleaning sleep_day table
+
+```{r cleaning table 2}
+sleep_day <- sleep_day %>%
+  clean_names() %>%
+  rename(date = sleep_day) %>%
+  mutate(date = as.Date(date, format = "%m/%d/%Y %I:%M:%S %p"))
+
+head(sleep_day)
+
+```
+
+```{r number of distinct users 2}
+sleep_day %>% count(id = n_distinct(id))
+```
+
+In this code snippet, I am working with the "sleep_day" dataset. First, I clean the column names and rename the "sleep_day" column to "date". Then, I convert the "date" column to the Date format using the specified format ("%m/%d/%Y %I:%M:%S %p") with the "as.Date" function.. Additionally, I calculate the number of distinct users by counting the unique values in the "id" column in the "sleep_day" dataset. This code snippet is aimed at cleaning and transforming the "sleep_day" dataset by standardizing column names and converting the date column to a proper format, while also providing insights on user counts.
+
+
+#### Cleaning weight_log table
+
+```{r cleaning table 3}
+weight_log <- weight_log %>% 
+  clean_names() %>% 
+  mutate(date = as.Date(date, format = "%m/%d/%Y %I:%M:%S %p"))
+
+head(weight_log)
+```
+
+```{r number of distint users 3}
+weight_log %>% count(n_distinct(id))
+```
+In this code snippet, I am working with the "weight_log" dataset. First, I clean the column names using the "clean_names()" function. Then, I use the "mutate()" function to convert the "date" column to the Date format using the specified format ("%m/%d/%Y %I:%M:%S %p") with the "as.Date()" function.  Additionally, I calculate the number of distinct users by counting the unique values in the "id" column in the "weight_log" dataset. This code snippet focuses on cleaning and transforming the "weight_log" dataset by standardizing column names and converting the date column to the appropriate format, while also providing insights on user counts.
+
+
+#### Cleaning minutes sleep table
+```{r cleaning table 4}
+minutes_sleep <- minutes_sleep %>%
+  clean_names() %>% 
+  separate(date, into = c("date", "time"), sep = " ") 
+ 
+
+print(minutes_sleep)
+```
+
+
+```{r number of distinct users 4}
+minutes_sleep %>% count(n_distinct(id))
+```
+
+In the code snippet provided, I am working with the "minutes_sleep" dataset. Firstly, I clean the column names using the clean_names() function. Then, I use the separate() function to split the "date" column into two separate columns, namely "date" and "time", based on the space separator. This allows for a more granular representation of the data. Finally, I print the modified dataset to observe the changes. Additionally, I calculate the number of distinct users by counting the unique values in the "id" column in the "minutes_sleep" dataset. 
+
+
+#### Cleaning daily steps table 
+```{r cleaning table 5}
+daily_steps <- daily_steps %>%
+  clean_names() %>%
+  rename(date = activity_day) %>%
+   mutate(date = as.Date(date, format = "%m/%d/%Y ")) %>% 
+            mutate(weekday = wday(date, label = TRUE)) 
+            
+  
+head(daily_steps)
+```
+
+
+
+```{r number of distinct users 5}
+daily_steps %>% count(n_distinct(id))
+```
+
+Here I am working with the "daily_steps" dataset. Initially, I clean the column names using the clean_names() function. Then, I rename the "activity_day" column to "date" using the rename() function. After that, I use the mutate() function to convert the "date" column to the Date format by specifying the format as "%m/%d/%Y". Additionally, I create a new column called "weekday" using the wday() function, which assigns the corresponding weekday label to each date.  Finally, I calculate the number of distinct users by counting the unique values in the "id" column in the "daily_steps" dataset. 
+
+
+...................................................................................
+
+
+## 4. Analyze
+
+In the "Analyze" phase, I conducted exploratory data analysis to uncover trends and patterns in the Fitbit data.
+
+
+
+#### Activity variation per user
+
+```{r activity variation per user}
+
+act_variation <- daily_activity %>%
+  group_by(weekday, id) %>%
+  summarise(
+    avg_steps = mean(total_steps, na.rm = TRUE),
+    avg_active_min = mean(very_active_minutes, na.rm = TRUE),
+    avg_active_distance = mean(very_active_distance, na.rm = TRUE),
+    avg_calories = mean(calories, na.rm = TRUE)
+  ) %>%
+  arrange(id)
+
+print(act_variation)
+
+```
+In the given code snippet, I am working with the "daily_activity" dataset. I group the data by "weekday" and "id" using the group_by() function. Then, I calculate the average values of "total_steps", "very_active_minutes", "very_active_distance", and "calories" for each group using the summarise() function. The mean() function is used to calculate the average, and the na.rm = TRUE argument is used to exclude any missing values. The resulting dataset is then arranged in ascending order based on the "id" column using the arrange() function. Finally, I print the resulting dataset, which displays the average values of the specified variables for each weekday and user.
+
+#### Activity levels frequency
+
+```{r frequency in activity levels}
+act_levels <- daily_activity %>%
+  group_by(very_active_minutes, fairly_active_minutes, lightly_active_minutes, sedentary_minutes) %>%
+  summarise(Frequency = n()) %>%
+  arrange(desc(Frequency), desc(very_active_minutes))
+
+print(act_levels)
+```
+
+
+In the provided code snippet, I am working with the "daily_activity" dataset. I group the data by the variables "very_active_minutes", "fairly_active_minutes", "lightly_active_minutes", and "sedentary_minutes" using the group_by() function. Then, I calculate the frequency of each combination of activity levels using the summarise() function with the n() function, which counts the number of observations in each group. The resulting dataset is then arranged in descending order based on the "Frequency" column and the "very_active_minutes" column using the arrange() function.
+
+
+#### Activity throughout the week by user
+
+```{r activity throughout the week}
+
+activity_summary_per_user <- daily_activity %>%
+  group_by(id, date, weekday) %>%
+  summarise(
+    very_active = sum(very_active_minutes),
+    fairly_active = sum(fairly_active_minutes),
+    lightly_active = sum(lightly_active_minutes),
+    sedentary = sum(sedentary_minutes),
+    calories = sum(calories),
+    steps = sum(total_steps),
+    distance = sum(total_distance),
+    .groups = "drop",
+  ) %>%
+  arrange(date)
+
+head(activity_summary_per_user)
+```
+ I group the data by the variables "id", "date", and "weekday" using the group_by() function. Then, I calculate the sum of minutes spent in very active, fairly active, lightly active, and sedentary activities, as well as the sum of calories burned, total steps taken, and total distance covered per user and per day using the summarise() function. The resulting dataset is then arranged in ascending order based on the "date" column using the arrange() function. 
+
+
+
+
+#### Relationship between activity levels and calories burned
+
+```{r activity levels vs. calories burned}
+
+calories_vs_activity <- daily_activity %>%
+  group_by(very_active_minutes, fairly_active_minutes, lightly_active_minutes, sedentary_minutes) %>%
+  summarise(avg_calories_burned = mean(calories),
+            .groups = "drop")
+
+print(calories_vs_activity)
+```
+I group the data by the variables "very_active_minutes", "fairly_active_minutes", "lightly_active_minutes", and "sedentary_minutes" using the group_by() function. Then, I calculate the average calories burned for each combination of activity levels using the summarise() function. The resulting dataset includes columns for the activity levels and the average calories burned for each combination. The .groups = "drop" argument ensures that the grouping structure is removed from the final output. 
+
+
+#### Calculate the most common amount of time where users are very active
+
+```{r user most active time }
+very_active_frequency <- daily_activity %>%
+  filter(!very_active_minutes %in% c(0, 1, 2, 3, 4, 5)) %>%
+  count(very_active_minutes, sort = TRUE) %>%
+  top_n(10)
+
+print(very_active_frequency)
+
+```
+ I filter out the rows where the "very_active_minutes" variable is not among the values 0, 1, 2, 3, 4, 5  using the filter() function. Then, I count the frequency of each unique value of "very_active_minutes" using the count() function, sorting the result in descending order. The top_n() function selects the top 10 rows based on the frequency count. 
+ 
+ 
+```{r activity per users long format}
+activity_summary_per_user_long <- activity_summary_per_user %>%
+  pivot_longer(cols = c(very_active, lightly_active, fairly_active, sedentary), 
+               names_to = "activity_level", values_to = "activity_minutes") %>%
+  group_by(weekday) %>%
+  mutate(total_minutes = sum(`activity_minutes`)) %>%
+  ungroup()
+print(activity_summary_per_user_long)
+
+```
+ First, I use the pivot_longer() function to transform the dataset from wide format to long format. The columns "very_active", "lightly_active", "fairly_active", and "sedentary" are pivoted into two columns: "activity_level" and "activity_minutes".
+
+Next, I group the data by "weekday" using the group_by() function. Then, I calculate the total minutes for each "weekday" by summing the "activity_minutes" using the mutate() function and the sum() function. Finally, I ungroup the data using the ungroup() function and print the resulting dataset.
+
+The purpose of this code is to reshape the "activity_summary_per_user" dataset into long format and calculate the total minutes for each activity level and weekday. This format allows for easier analysis and visualization of activity patterns across weekdays.
+
+#### Activity variations 
+```{r chart activity variations}
+ggplot(activity_summary_per_user_long, aes(x = weekday, y = `activity_minutes`, fill = `activity_level`)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(
+    x = "Day of Week",
+    y = "Activity Minutes",
+    fill = "Activity Level",
+    title = "Activity Variation by Day of Week"
+  ) +
+  scale_fill_manual(values = c( "lightly_active" = "#BAD1C2", "fairly_active" ="#FFD580"  , "very_active" = "#379237", "sedentary" = "#F0F0F0"))+
+  theme_minimal() +
+  ylim(0, 600)
+
+```
+**The chart shows the variation in activity minutes by day of the week. It indicates that people have higher levels of very active minutes on Saturdays and Sundays compared to other days. This suggests that weekends tend to have more physical activity or exercise, resulting in increased very active minutes. The chart also displays the activity levels (lightly active, fairly active, very active, sedentary) using different fill colors, providing a visual representation of the distribution of activity levels throughout the week.**
+
+
+#### Relationship between activity levels and calories burned
+
+```{r chart activity levels vs. calories burned}
+ggplot(calories_vs_activity, aes(x = avg_calories_burned, y = (very_active_minutes), color = avg_calories_burned)) +
+  geom_point() +
+  labs(x = "Average Calories Burned", y = "Very Active Minutes") +
+  ggtitle("Relationship between Activity Levels and Calories Burned") +
+  scale_color_gradient(low = "pink", high = "red")
+
+```
+**The chart demonstrates a clear pattern: individuals who spend more time in very active minutes tend to burn more calories on average. This observation implies that engaging in higher levels of physical activity, particularly through intense active minutes, leads to a greater expenditure of calories.**
+
+
+#### what percentage of users manually reported their weight? 
+
+```{r manually logged weight}
+percentage_manual <- weight_log %>%
+  summarise(percentage = mean(is_manual_report) * 100)
+print(percentage_manual)
+```
+
+ I use the summarise() function to calculate the mean of the "is_manual_report" variable, which represents whether the information in the weight log was manually logged by the users. I then multiply this mean by 100 to get the percentage. Finally, I use the print() function to display the resulting percentage of users who manually logged information into the weight log dataset.
+
+The purpose of this code is to determine the percentage of users who manually logged information in the weight log dataset. It provides a measure of user engagement in actively reporting their weight information rather than relying on automated or external data sources.
+
+
+#### Summary of weight and BMI
+
+```{r summary of weight and bmi}
+weight_summary <- summary(weight_log$weight_pounds)
+bmi_summary <- summary(weight_log$bmi)
+```
+
+
+```{r df for weight and bmi summary}
+summary_data <- data.frame(
+  Variable = c("Weight (lb)", "BMI"),
+  Minimum = c(weight_summary[1], bmi_summary[1]),
+  First_Quartile = c(weight_summary[2], bmi_summary[2]),
+  Median = c(weight_summary[3], bmi_summary[3]),
+  Mean = c(weight_summary[4], bmi_summary[4]),
+  Third_Quartile = c(weight_summary[5], bmi_summary[5]),
+  Maximum = c(weight_summary[6], bmi_summary[6])
+)
+print(summary_data)
+```
+
+In the provided code, I first use the summary() function on the "weight_pounds" variable and store the summary statistics in the weight_summary object. Similarly, I use the summary() function on the "bmi" variable and store the summary statistics in the bmi_summary object.Next, I create a data frame called summary_data to store the summary statistics for weight and BMI. The purpose of this code is to generate summary statistics for the weight and BMI variables in the weight log dataset and display them in a structured format for easy interpretation.
+
+
+#### Calculate the total time asleep per day per user
+```{r daily total sleep time per user }
+avg_sleep_duration_per_user <- minutes_sleep %>%
+  mutate(value = as.numeric(value)) %>%
+  group_by(id, date) %>%
+  summarise(total_duration = sum(value, na.rm = TRUE), .groups = "drop")
+print(avg_sleep_duration_per_user)
+
+```
+In the provided code, I start by converting the "value" column in the "minutes_sleep" dataset to numeric using the as.numeric() function. Then, I group the data by "id" and "date" using the group_by() function.
+Next, I calculate the total duration of sleep for each user on each date by using the sum() function on the "value" column. The na.rm = TRUE argument is used to exclude any missing values in the calculation. The resulting aggregated values are stored in the "total_duration" column.
+
+
+#### Grouping sleep duration into less 6h , between 6-9h & more than 9h 
+```{r grouping sleep duration}
+avg_sleep_duration <- avg_sleep_duration_per_user %>%
+  mutate(sleep_group = case_when(
+    total_duration < 360 ~ "Less than 6 hours",
+    total_duration >= 360 & total_duration <= 540 ~ "6-9 hours",
+    total_duration > 540 ~ "More than 9 hours"
+  ))
+print(avg_sleep_duration)
+```
+
+In the provided code, I start with the "avg_sleep_duration_per_user" dataset obtained from the previous code snippet. Then, I use the mutate() function to create a new column called "sleep_group".
+
+Based on the "total_duration" column, I categorize the sleep duration into three groups using the case_when() function:
+
+If the total duration is less than 360 minutes (6 hours), the sleep group is set as "Less than 6 hours".
+If the total duration is between 360 and 540 minutes (6-9 hours), the sleep group is set as "6-9 hours".
+If the total duration is more than 540 minutes (9 hours), the sleep group is set as "More than 9 hours".
+The resulting dataset, "avg_sleep_duration", contains the user's average sleep duration per date along with the corresponding sleep group.
+
+
+
+
+#### Create a bar plot of sleep duration groups
+```{r chart for sleep duration groups}
+
+ggplot(avg_sleep_duration, aes(x = sleep_group)) +
+  geom_bar(fill = "steelblue") +
+  labs(x = "Sleep Duration Group", y = "Minutes") +
+  ggtitle("Average Sleep Duration Group") +
+  theme_minimal()
+```
+**The chart displays the average sleep duration among individuals in the dataset. The x-axis represents different sleep duration groups, while the y-axis represents the corresponding average number of minutes. The findings indicate that the majority of people in the dataset sleep for 6-9 hours, which falls within the recommended sleep duration range. The second largest group consists of individuals who sleep for more than 9 hours, and the third group comprises those who sleep less than 6 hours. This suggests that most people in the dataset are meeting the recommended sleep duration, with a smaller proportion sleeping excessively or insufficiently.**
+
+
+
+
+
+
+#### Summary data daily steps 
+
+```{r daily steps summary}
+steps_summary <- summary(daily_steps$step_total)
+print(steps_summary)
+```
+
+
+#### Summary steps to table 
+```{r df for steps summary}
+summary_steps <- data.frame(
+  Statistics = c("min", "first_quartile", "median", "mean", "third_quartile", "max"),
+  Values = c(0, 3790, 7406, 7638, 10727, 36019)
+) 
+print(summary_steps)
+```
+
+In this code, I calculated the summary statistics for the "step_total" column in the "daily_steps" dataset. The resulting "steps_summary" object contains the minimum, first quartile, median, mean, third quartile, and maximum values of the step totals.
+
+Then, I created a data frame called "summary_steps" to organize and present the summary statistics. The "Statistics" column includes labels for each statistic, such as "min" for minimum and "mean" for mean, and the "Values" column displays the corresponding values calculated from the dataset.
+
+
+
+
+
+#### Activity variation - average steps
+
+```{r chart calories vs steps }
+
+ggplot(daily_activity, aes(x = total_steps, y = calories, color = total_steps + calories)) +
+  geom_point() +
+  scale_color_gradient(low = "lightcoral", high = "darkred") +
+  labs(x = "Steps Taken", y = "Calories Burned") +
+  ggtitle("Calories Burned vs Steps Taken") +
+  theme_minimal()
+
+```
+**The scatter plot illustrates the relationship between the number of steps taken and the calories burned. As observed, there is a positive correlation between these two variables. The plot shows that as individuals take more steps, their calorie expenditure also increases. This finding suggests that physical activity, as represented by steps taken, plays a significant role in calorie burning. **
+
+
+...................................................................................
+
+
+## 5. Share 
+
+
+
+## Case Study Summary: Analysis and Recommendations for Bellabit Fitbit Product
+
+## Based on the findings and trends observed in the analysis, here are some recommendations for Bellabit Fitbit product:
+
+### Activity Tracking:
+
+1.  Encourage users to maintain consistent activity levels throughout the week by providing insights into their average steps, active minutes, active distance, and calories burned per weekday.
+
+2.  Promote activities that result in higher very active minutes, as they have a positive correlation with calories burned.
+
+### Sleep Tracking:
+
+1.  Highlight the importance of total minutes asleep and total time in bed for overall well-being.
+
+2.  Provide personalized sleep recommendations to users based on their sleep patterns and encourage them to aim for a consistent and sufficient sleep duration.
+
+### Weight Management:
+
+1.  Help users monitor their weight trends over time by visualizing the weight (kg) changes using line plots.
+
+2.  Provide insights into BMI distribution and educate users about healthy BMI ranges.
+
+3.  Offer personalized recommendations and resources for maintaining a healthy weight and achieving desired BMI goals.
+
+### User Engagement:
+
+1.  Provide personalized recommendations and tips to users based on their activity.
+
+## Conclusion
+
+In this case study, I utilized R, a powerful tool for handling large datasets, performing data cleaning, conducting analysis, and creating visualizations, to analyze the Bellabit Fitbit product data. R was chosen due to its ability to handle substantial amounts of data and provide all the necessary functionalities in one place.
+
+The analysis process began with data cleaning and preparation, including tasks such as standardizing column names and converting date formats. Exploratory data analysis techniques were then applied to uncover trends and gain insights from the dataset.
+
+During the project, I encountered challenges, particularly in finding the correct syntax for specific calculations. However, I overcame these hurdles by leveraging online resources to learn the appropriate R functions and their effective usage. Additionally, these tools were helpful in explaining certain codes and providing ideas for identifying trends within the data. They also played a crucial role in summarizing findings and structuring the analysis.
+
+In summary, this case study involved cleaning and preparing the Bellabit Fitbit data, conducting exploratory data analysis to identify trends in activity levels, sleep patterns, and weight changes, and creating visualizations to effectively communicate these trends. The analysis yielded insights into user activity, sleep behavior, calories burned, weight trends, and BMI distribution. These findings can inform recommendations for the Bellabit Fitbit product, such as strategies for promoting physical activity, improving sleep quality, and supporting weight management goals.
+
+While R initially appeared to be the most efficient tool for the project due to its ability to handle data cleaning, analysis, and visualizations, I discovered that working with R can be tedious. As a result, I have developed a preference for other tools that may offer a more streamlined workflow and improved user experience.
